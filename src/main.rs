@@ -5,6 +5,7 @@ use std::io::Read;
 use std::env;
 
 fn main(){
+    let config_file = ".gmail.json";
     let mut json_path: String = String::from("");
     match env::home_dir() {
         Some(path_obj) => {
@@ -15,7 +16,7 @@ fn main(){
         }
         None => println!("Impossible to get your home dir!"),
     }
-    json_path = format!("{}/.gmail.json", json_path);
+    json_path = format!("{}/{}", json_path, config_file);
     println!("{}", json_path);
     let mut file = match File::open(&json_path) {
         Err(why) => panic!("couldn't open {}: {}", json_path,
