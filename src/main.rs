@@ -1,0 +1,31 @@
+extern crate gmail_lib;
+
+use std::fs::File;
+use std::io::Read;
+use std::env;
+
+fn main(){
+    let mut json_path: String = String::from("");
+    match env::home_dir() {
+        Some(path_obj) => {
+            match path_obj.to_str() {
+                Some(path) => json_path = String::from(path),
+                None => println!("Wrong path"),
+            }
+        }
+        None => println!("Impossible to get your home dir!"),
+    }
+    json_path = format!("{}/.gmail.json", json_path);
+    println!("{}", json_path);
+    let mut file = match File::open(&json_path) {
+        Err(why) => panic!("couldn't open {}: {}", json_path,
+                                                   why),
+        Ok(file) => file,
+    };
+
+    let mut data = String::new();
+    if let Err(why) = file.read_to_string(&mut data) {
+         panic!("couldn't read {}: {}", json_path, why);
+    }
+    println!("{}", data);
+}

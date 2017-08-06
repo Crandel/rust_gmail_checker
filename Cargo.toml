@@ -1,0 +1,11 @@
+[package]
+name = "rust_gmail"
+version = "0.1.0"
+authors = ["Crandel <cradlemann@gmail.com>"]
+
+license-file = "LICENSE"
+
+[lib]
+name = "gmail_lib"
+path = "src/lib.rs"
+[dependencies]
