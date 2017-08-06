@@ -1,9 +1,5 @@
 // extern crate serialize;
 // use serialize::json;
 
-struct Account {
-    account: String,
-    short: String,
-    mail: String,
-    password: String,
-}
+pub mod structs;
+pub mod config;
