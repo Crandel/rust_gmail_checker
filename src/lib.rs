@@ -1,5 +1,5 @@
 // extern crate serialize;
 // use serialize::json;
 
-pub mod structs;
+pub mod accounts;
 pub mod config;
