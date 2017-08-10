@@ -1,7 +1,18 @@
 #[derive(Debug)]
 pub struct Account {
-    pub account: String,
-    pub short: String,
-    pub mail: String,
-    pub password: String,
+    account: String,
+    short: String,
+    mail: String,
+    password: String,
+}
+
+impl Account {
+    pub fn new(account: String, short: String, mail: String, password: String,) -> Account {
+        Account {
+            account: account,
+            short: short,
+            mail: mail,
+            password: password,
+        }
+    }
 }

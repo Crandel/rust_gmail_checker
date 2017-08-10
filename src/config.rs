@@ -34,7 +34,7 @@ pub fn get_config(config_file: &str) -> Vec<Account> {
     let mut file = match f {
         Ok(file) => file,
         Err(ref error) if error.kind() == ErrorKind::NotFound => {
-            match File::create("hello.txt") {
+            match File::create(&json_path) {
                 Ok(fc) => fc,
                 Err(e) => {
                     panic!(
@@ -55,12 +55,12 @@ pub fn get_config(config_file: &str) -> Vec<Account> {
     if let Err(why) = file.read_to_string(&mut data) {
         panic!("couldn't read {}: {}", json_path, why);
     }
-    let acc = Account{
-        account: String::from("Crandel"),
-        short: String::from("C"),
-        mail: String::from("cradlemann@gmail.com"),
-        password: String::from("***REMOVED***"),
-    };
+    let acc = Account::new(
+        String::from("username"),
+        String::from("Short"),
+        String::from("email"),
+        String::from("password"),
+    );
     let acc_vec = vec![acc];
     acc_vec
 }
