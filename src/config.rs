@@ -1,3 +1,5 @@
+extern crate serde_json;
+
 use std::fs::File;
 use std::io::{Read,ErrorKind, Error};
 use std::env;
@@ -27,6 +29,15 @@ pub fn get_config(config_file: &str) -> Result<Vec<Account>, ConfigError> {
         Err(ref error) if error.kind() == ErrorKind::NotFound => {
             match File::create(&json_path) {
                 Ok(fc) => {
+                    let acc = Account::new(
+                        String::from("username"),
+                        String::from("Short"),
+                        String::from("email"),
+                        String::from("password"),
+                    );
+                    let def_vec_acc = vec![acc];
+                    let ser = serde_json::to_string(&acc).unwrap();
+                    fc.write_all(ser);
                     fc
                 },
                 Err(e) => return Err(ConfigError::IOError(e)),
@@ -37,12 +48,6 @@ pub fn get_config(config_file: &str) -> Result<Vec<Account>, ConfigError> {
     let mut data = String::new();
     file.read_to_string(&mut data).expect(&format!("couldn't read to string {}", &json_path));
     println!("{}", data);
-    let acc = Account::new(
-        String::from("username"),
-        String::from("Short"),
-        String::from("email"),
-        String::from("password"),
-    );
-    let acc_vec = vec![acc];
+    let acc_vec: Vec<Account> = serde_json::from_str(&data).unwrap();
     Ok(acc_vec)
 }
