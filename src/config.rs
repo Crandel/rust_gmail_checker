@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Read,ErrorKind, Error};
+use std::io::{Read,ErrorKind, Error, Write};
 use std::env;
 use accounts::Account;
 use serde_json;
@@ -37,8 +37,11 @@ pub fn get_config(config_file: &str) -> Result<Vec<Account>, ConfigError> {
                         String::from("password"),
             );
             let def_vec_acc = vec![acc];
-            let ser = serde_json::to_string(&acc).unwrap();
-            sample_file.write_all(ser.as_bytes())?;
+            let ser = serde_json::to_string(&def_vec_acc).unwrap();
+            match sample_file.write_all(ser.as_bytes()){
+                Ok(fs) => return Err(ConfigError::FileError(String::from("There are no config file, create sample '~/.gmail.json' config file"))),
+                Err(error) => return Err(ConfigError::IOError(error)),
+            };
         },
         Err(error) => return Err(ConfigError::IOError(error)),
     };
