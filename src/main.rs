@@ -1,3 +1,4 @@
+#[macro_use]
 extern crate gmail_lib;
 
 use gmail_lib::config;

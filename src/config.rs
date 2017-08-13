@@ -1,9 +1,8 @@
-extern crate serde_json;
-
 use std::fs::File;
 use std::io::{Read,ErrorKind, Error};
 use std::env;
 use accounts::Account;
+use serde_json;
 
 pub enum ConfigError{
     FileError(String),
@@ -27,21 +26,19 @@ pub fn get_config(config_file: &str) -> Result<Vec<Account>, ConfigError> {
     let mut file = match f {
         Ok(file) => file,
         Err(ref error) if error.kind() == ErrorKind::NotFound => {
-            match File::create(&json_path) {
-                Ok(fc) => {
-                    let acc = Account::new(
+            let mut sample_file = match File::create(&json_path) {
+                Ok(fc) => fc,
+                Err(e) => return Err(ConfigError::IOError(e)),
+            };
+            let acc = Account::new(
                         String::from("username"),
                         String::from("Short"),
                         String::from("email"),
                         String::from("password"),
-                    );
-                    let def_vec_acc = vec![acc];
-                    let ser = serde_json::to_string(&acc).unwrap();
-                    fc.write_all(ser);
-                    fc
-                },
-                Err(e) => return Err(ConfigError::IOError(e)),
-            }
+            );
+            let def_vec_acc = vec![acc];
+            let ser = serde_json::to_string(&acc).unwrap();
+            sample_file.write_all(ser.as_bytes())?;
         },
         Err(error) => return Err(ConfigError::IOError(error)),
     };
