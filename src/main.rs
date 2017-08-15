@@ -31,13 +31,14 @@ fn main(){
     let client = Client::new(&core.handle());
     for acc in &accs {
         let mut req = Request::new(Method::Get, uri.clone());
-        let mut headers = req.headers_mut();
-        headers.set(Authorization(Basic {
-           username: String::from(acc.get_email()),
-           password: Some(String::from(acc.get_password()))
-        }));
-        let mut result = client
-            .request(req);
+        {
+            let mut headers = req.headers_mut();
+            headers.set(Authorization(Basic {
+                username: String::from(acc.get_email()),
+                password: Some(String::from(acc.get_password()))
+            }));
+        }
+        let mut result = client.request(req);
         println!("{:?}", result);
     }
 }
