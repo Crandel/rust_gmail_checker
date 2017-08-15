@@ -1,4 +1,5 @@
 use serde_derive;
+use base64::encode;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Account {
@@ -9,12 +10,19 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new(account: String, short: String, mail: String, password: String,) -> Account {
+    pub fn new(account: String, short: String, email: String, password: String,) -> Account {
         Account {
             account: account,
             short_conky: short,
-            email: mail,
+            email: email,
             password: password,
         }
     }
+    pub fn get_email(&self) -> &str {
+        &self.email
+    }
+    pub fn get_password(&self) -> &str {
+        &self.password
+    }
+
 }
