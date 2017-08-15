@@ -1,11 +1,13 @@
 extern crate gmail_lib;
 extern crate futures;
 extern crate hyper;
+extern crate hyper_tls;
 extern crate tokio_core;
 
 use std::io::{self, Write};
 use futures::{Future, Stream};
 use hyper::{Client, Uri, Method, Request};
+use hyper_tls::HttpsConnector;
 use hyper::header::{Headers, Authorization, Basic};
 use tokio_core::reactor::Core;
 
@@ -28,7 +30,10 @@ fn main(){
         },
     };
     let mut core = Core::new().unwrap();
-    let client = Client::new(&core.handle());
+    let handle = core.handle();
+    let client = Client::configure()
+        .connector(HttpsConnector::new(4, &handle).unwrap())
+        .build(&handle);
     for acc in &accs {
         let mut req = Request::new(Method::Get, uri.clone());
         {
@@ -38,7 +43,13 @@ fn main(){
                 password: Some(String::from(acc.get_password()))
             }));
         }
-        let mut result = client.request(req);
-        println!("{:?}", result);
+        let mut gmail = client.request(req);
+        let res = core.run(gmail).unwrap();
+        res.body().for_each(|chunk| {
+        io::stdout()
+            .write_all(&chunk)
+            .map(|_| ())
+            .map_err(From::from)
+        });
     }
 }

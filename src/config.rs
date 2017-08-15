@@ -49,7 +49,6 @@ Sample config file  '~/.gmail.json' was created, please fill all neccessary fiel
     };
     let mut data = String::new();
     file.read_to_string(&mut data).expect(&format!("couldn't read to string {}", &json_path));
-    println!("{}", data);
     let acc_vec: Vec<Account> = serde_json::from_str(&data).unwrap();
     Ok(acc_vec)
 }

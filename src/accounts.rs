@@ -1,5 +1,4 @@
 use serde_derive;
-use base64::encode;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Account {
