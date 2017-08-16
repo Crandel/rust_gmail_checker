@@ -4,19 +4,19 @@ extern crate hyper;
 extern crate hyper_tls;
 extern crate tokio_core;
 
-use std::io::{self, Write};
+use std::str;
 use futures::{Future, Stream};
 use hyper::{Client, Uri, Method, Request};
 use hyper_tls::HttpsConnector;
-use hyper::header::{Headers, Authorization, Basic};
+use hyper::header::{Authorization, Basic};
 use tokio_core::reactor::Core;
 
 use gmail_lib::config;
 
 fn main(){
     let config_file = ".gmail.json";
-    let mut uri = "https://mail.google.com/mail/feed/atom";
-    let mut uri = uri.parse::<hyper::Uri>().unwrap();
+    let uri = "https://mail.google.com/mail/feed/atom";
+    let uri = uri.parse::<Uri>().unwrap();
     let data = config::get_config(config_file);
     let accs = match data {
         Ok(accs) => accs,
@@ -43,13 +43,16 @@ fn main(){
                 password: Some(String::from(acc.get_password()))
             }));
         }
-        let mut gmail = client.request(req);
-        let res = core.run(gmail).unwrap();
-        res.body().for_each(|chunk| {
-        io::stdout()
-            .write_all(&chunk)
-            .map(|_| ())
-            .map_err(From::from)
+        let gmail = client.request(req).and_then(|res| {
+            println!("GET: {}", res.status());
+
+            res.body().concat2()
         });
+        let result = core.run(gmail).unwrap();
+        let body_str = match str::from_utf8(&result) {
+            Ok(body) => body,
+            _ => "",
+        };
+        println!("Finish all {}", body_str);
     }
 }
