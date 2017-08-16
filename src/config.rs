@@ -40,8 +40,8 @@ pub fn get_config(config_file: &str) -> Result<Vec<Account>, ConfigError> {
             let def_vec_acc = vec![acc];
             let ser = serde_json::to_string(&def_vec_acc).unwrap();
             match sample_file.write_all(ser.as_bytes()){
-                Ok(fs) => return Err(ConfigError::FileError(String::from("There are no config file
-Sample config file  '~/.gmail.json' was created, please fill all neccessary fields"))),
+                Ok(fs) => return Err(ConfigError::FileError(format!("There are no config file
+Sample config file  '{}' was created, please fill all neccessary fields", json_path))),
                 Err(error) => return Err(ConfigError::IOError(error)),
             };
         },

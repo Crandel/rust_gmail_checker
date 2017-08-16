@@ -3,6 +3,7 @@ extern crate futures;
 extern crate hyper;
 extern crate hyper_tls;
 extern crate tokio_core;
+extern crate regex;
 
 use std::str;
 use futures::{Future, Stream};
@@ -10,10 +11,12 @@ use hyper::{Client, Uri, Method, Request};
 use hyper_tls::HttpsConnector;
 use hyper::header::{Authorization, Basic};
 use tokio_core::reactor::Core;
+use regex::Regex;
 
 use gmail_lib::config;
 
 fn main(){
+    let mut result_str = "".to_owned();
     let config_file = ".gmail.json";
     let uri = "https://mail.google.com/mail/feed/atom";
     let uri = uri.parse::<Uri>().unwrap();
@@ -34,6 +37,8 @@ fn main(){
     let client = Client::configure()
         .connector(HttpsConnector::new(4, &handle).unwrap())
         .build(&handle);
+    let fullcount = Regex::new("<fullcount>(.*?)</fullcount>").unwrap();
+    let re = Regex::new("[0-9+]").unwrap();
     for acc in &accs {
         let mut req = Request::new(Method::Get, uri.clone());
         {
@@ -44,8 +49,6 @@ fn main(){
             }));
         }
         let gmail = client.request(req).and_then(|res| {
-            println!("GET: {}", res.status());
-
             res.body().concat2()
         });
         let result = core.run(gmail).unwrap();
@@ -53,6 +56,10 @@ fn main(){
             Ok(body) => body,
             _ => "",
         };
-        println!("Finish all {}", body_str);
+        let mat = fullcount.find(body_str).unwrap();
+        let fullcount_str = &body_str[mat.start()..mat.end()];
+        let result = re.find(fullcount_str).unwrap();
+        result_str.push_str(&format!("{}:{} ", acc.get_short(), &fullcount_str[result.start()..result.end()]));
     }
+    println!("{}", result_str);
 }
