@@ -17,12 +17,15 @@ impl Account {
             password: password,
         }
     }
+
     pub fn get_email(&self) -> &str {
         &self.email
     }
+
     pub fn get_password(&self) -> &str {
         &self.password
     }
+
     pub fn get_short(&self) -> &str {
         &self.short_conky
     }

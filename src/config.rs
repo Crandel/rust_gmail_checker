@@ -10,7 +10,7 @@ pub enum ConfigError{
     IOError(Error),
 }
 
-pub fn get_config(config_file: &str) -> Result<Vec<Account>, ConfigError> {
+pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
     // Get home directory
     let mut json_path: String = String::from("");
     match env::home_dir() {

@@ -20,7 +20,7 @@ fn main(){
     let config_file = ".gmail.json";
     let uri = "https://mail.google.com/mail/feed/atom";
     let uri = uri.parse::<Uri>().unwrap();
-    let data = config::get_config(config_file);
+    let data = config::get_config_data(config_file);
     let accs = match data {
         Ok(accs) => accs,
         Err(e) => {
