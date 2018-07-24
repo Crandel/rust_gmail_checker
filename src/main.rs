@@ -2,24 +2,30 @@ extern crate futures;
 extern crate gmail_lib;
 extern crate hyper;
 extern crate hyper_tls;
+extern crate itertools;
 extern crate regex;
 extern crate tokio_core;
 
-use std::str;
 use futures::{Future, Stream};
+use hyper::header::{Authorization, Basic};
 use hyper::{Client, Method, Request, Uri};
 use hyper_tls::HttpsConnector;
-use hyper::header::{Authorization, Basic};
-use tokio_core::reactor::Core;
+use itertools::Itertools;
 use regex::Regex;
+use std::str;
+use tokio_core::reactor::Core;
 
 use gmail_lib::config;
 
 fn main() {
-    // result should be printed to stdout;
-    let mut result_str = "".to_owned();
+    // save a
+    let mut account_messages = Vec::new();
+    // if at least one account has unread message, change color
+    let mut has_unread = false;
     // config filename
     let config_file = ".gmail.json";
+    let null_color = "#2E64FE";
+    let unread_color = "#D0FA58";
     // gmail url
     let uri = "https://mail.google.com/mail/feed/atom";
     let uri = uri.parse::<Uri>().unwrap();
@@ -45,7 +51,7 @@ fn main() {
         .build(&handle);
     // Regex part
     let fullcount = Regex::new("<fullcount>(.*?)</fullcount>").unwrap();
-    let re = Regex::new("[0-9+]").unwrap();
+    let count_number = Regex::new("[0-9+]").unwrap();
 
     // get number of unreaded messages for each acc
     for acc in &accs {
@@ -58,10 +64,10 @@ fn main() {
                 password: Some(String::from(acc.get_password())),
             }));
         }
-        let gmail = client.request(req).and_then(|res| res.body().concat2());
-        let result = core.run(gmail).unwrap();
+        let response = client.request(req).and_then(|res| res.body().concat2());
+        let response_string = core.run(response).unwrap();
         // get info from response
-        let body_str = match str::from_utf8(&result) {
+        let body_str = match str::from_utf8(&response_string) {
             Ok(body) => body,
             _ => "",
         };
@@ -70,16 +76,26 @@ fn main() {
         let result = match fullcount.find(body_str) {
             Some(count) => {
                 let fullcount_str = &body_str[count.start()..count.end()];
-                match re.find(fullcount_str) {
+                match count_number.find(fullcount_str) {
                     Some(res) => &fullcount_str[res.start()..res.end()],
                     None => "",
                 }
             }
             None => "",
         };
+        if result != "0" {
+            has_unread = true;
+        }
 
         // Save result as String
-        result_str.push_str(&format!("{}:{} ", acc.get_short(), result));
+        account_messages.push(format!("{}:{}", acc.get_short(), result));
     }
-    println!("{}", result_str);
+    let result_color = if has_unread { unread_color } else { null_color };
+
+    let count = format!(
+        r#"{{ "full_text" : "\uF0E0 {}", "color" : "{}"}}"#,
+        account_messages.iter().rev().join(" "),
+        result_color
+    );
+    println!("{}", count);
 }
