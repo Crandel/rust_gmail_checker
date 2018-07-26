@@ -18,14 +18,9 @@ use tokio_core::reactor::Core;
 use gmail_lib::config;
 
 fn main() {
-    // save a
     let mut account_messages = Vec::new();
-    // if at least one account has unread message, change color
-    let mut has_unread = false;
     // config filename
     let config_file = ".gmail.json";
-    let null_color = "#2E64FE";
-    let unread_color = "#D0FA58";
     // gmail url
     let uri = "https://mail.google.com/mail/feed/atom";
     let uri = uri.parse::<Uri>().unwrap();
@@ -83,19 +78,10 @@ fn main() {
             }
             None => "",
         };
-        if result != "0" {
-            has_unread = true;
-        }
 
         // Save result as String
         account_messages.push(format!("{}:{}", acc.get_short(), result));
     }
-    let result_color = if has_unread { unread_color } else { null_color };
 
-    let count = format!(
-        r#"{{ "full_text" : "\uF0E0 {}", "color" : "{}"}}"#,
-        account_messages.iter().rev().join(" "),
-        result_color
-    );
-    println!("{}", count);
+    println!("{}", account_messages.iter().rev().join(" "));
 }
