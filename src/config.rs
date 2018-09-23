@@ -1,8 +1,9 @@
 use accounts::Account;
+use dirs;
 use serde_json;
-use std::env;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Write};
+use utils::EmailType;
 
 #[derive(Debug)]
 pub enum ConfigError {
@@ -12,10 +13,9 @@ pub enum ConfigError {
 
 pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
     // Get home directory
-    let mut json_path: String = String::from("");
-    match env::home_dir() {
+    let json_path: String = match dirs::home_dir() {
         Some(path_obj) => match path_obj.to_str() {
-            Some(path) => json_path = format!("{}/{}", path, config_file),
+            Some(path) => format!("{}/{}", path, config_file),
             None => {
                 return Err(ConfigError::FileError(String::from(
                     "Impossible to get your home dir!",
@@ -27,7 +27,7 @@ pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
                 "Impossible to get your home dir!",
             )))
         }
-    }
+    };
 
     let f = File::open(&json_path);
     let mut file = match f {
@@ -38,6 +38,7 @@ pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
                 Err(e) => return Err(ConfigError::IOError(e)),
             };
             let acc = Account::new(
+                EmailType::Gmail,
                 String::from("username"),
                 String::from("Short"),
                 String::from("email"),
@@ -62,5 +63,6 @@ Sample config file  '{}' was created, please fill all neccessary fields",
     file.read_to_string(&mut data)
         .expect(&format!("couldn't read to string {}", &json_path));
     let acc_vec: Vec<Account> = serde_json::from_str(&data).unwrap();
+
     Ok(acc_vec)
 }
