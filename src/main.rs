@@ -10,7 +10,7 @@ use tokio::runtime::Runtime;
 use gmail_lib::client::WebClient;
 use gmail_lib::config;
 use gmail_lib::gmail::GmailHandler;
-use gmail_lib::utils::{Basic, ServiceUrl};
+use gmail_lib::utils::{EmailType, ServiceUrl};
 
 fn main() {
     let mut account_messages = Vec::new();
@@ -38,15 +38,17 @@ fn main() {
 
     // get number of unreaded messages for each acc
     for acc in &accs {
-        let basic = Basic::new(
-            String::from(acc.get_email()),
-            String::from(acc.get_password()),
-        );
-        let base_str = basic.encode_tostr();
-        let uri: Uri = gmail_handler.get_url().parse().unwrap();
-        let response = runtime.block_on(web_client.send(uri, &base_str)).unwrap();
+        let handler = match acc.get_mail_type() {
+            EmailType::Gmail => &gmail_handler,
+            _ => &gmail_handler,
+        };
+
+        let uri: Uri = handler.get_url().parse().unwrap();
+        let headers = handler.create_headers(acc);
+
+        let response = runtime.block_on(web_client.send(uri, headers)).unwrap();
         // extract necessary info using Regex
-        let result = gmail_handler.extract_result(response);
+        let result = handler.extract_result(response);
         // Save result as String
         account_messages.push(format!("{}:{}", acc.get_short(), result));
     }

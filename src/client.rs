@@ -3,7 +3,7 @@ use futures::Stream;
 use hyper;
 use hyper::client::HttpConnector;
 use hyper::client::ResponseFuture;
-use hyper::header::{HeaderValue, AUTHORIZATION};
+use hyper::header::HeaderMap;
 use hyper::{Body, Client, Method, Request, Uri};
 use hyper_tls::HttpsConnector;
 
@@ -30,7 +30,7 @@ impl WebClient {
     pub fn send(
         &self,
         url: Uri,
-        header: &str,
+        header: HeaderMap,
     ) -> impl Future<Item = String, Error = WebClientError> {
         let result = self
             .send_internal(url, header)
@@ -54,13 +54,15 @@ impl WebClient {
         result
     }
 
-    fn send_internal(&self, url: Uri, header: &str) -> ResponseFuture {
-        let request = Request::builder()
+    fn send_internal(&self, url: Uri, headers: HeaderMap) -> ResponseFuture {
+        let mut request = Request::builder()
             .method(Method::GET)
-            .header(AUTHORIZATION, HeaderValue::from_str(header).unwrap())
             .uri(url)
             .body(Body::empty())
             .unwrap();
+        for (key, value) in &headers {
+            request.headers_mut().insert(key, value.clone());
+        }
         self.client.request(request)
     }
 }

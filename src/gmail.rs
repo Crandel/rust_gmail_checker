@@ -1,6 +1,7 @@
+use accounts::Account;
+use hyper::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use regex::Regex;
-
-use utils::ServiceUrl;
+use utils::{Basic, ServiceUrl};
 
 pub struct GmailHandler {
     fullcount: Regex,
@@ -16,8 +17,14 @@ impl GmailHandler {
             count_number: count_number,
         }
     }
+}
 
-    pub fn extract_result(&self, body_str: String) -> String {
+impl ServiceUrl for GmailHandler {
+    fn get_url(&self) -> &str {
+        "https://mail.google.com/mail/feed/atom"
+    }
+
+    fn extract_result(&self, body_str: String) -> String {
         let str_body = body_str.as_str();
         let result = match self.fullcount.find(str_body) {
             Some(count) => {
@@ -31,10 +38,18 @@ impl GmailHandler {
         };
         String::from(result)
     }
-}
 
-impl ServiceUrl for GmailHandler {
-    fn get_url(&self) -> &str {
-        "https://mail.google.com/mail/feed/atom"
+    fn create_headers(&self, acc: &Account) -> HeaderMap {
+        let basic = Basic::new(
+            String::from(acc.get_email()),
+            String::from(acc.get_password()),
+        );
+        let base_str = basic.encode_tostr();
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(base_str.as_str()).unwrap(),
+        );
+        headers
     }
 }

@@ -1,4 +1,6 @@
 extern crate base64;
+use accounts::Account;
+use hyper::header::HeaderMap;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -9,7 +11,10 @@ pub enum EmailType {
 
 pub trait ServiceUrl {
     fn get_url(&self) -> &str;
+    fn extract_result(&self, body_str: String) -> String;
+    fn create_headers(&self, acc: &Account) -> HeaderMap;
 }
+
 #[derive(Debug)]
 pub struct Basic {
     username: String,
