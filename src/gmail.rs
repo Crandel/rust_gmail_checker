@@ -10,7 +10,7 @@ pub struct GmailHandler {
 
 impl GmailHandler {
     pub fn new() -> GmailHandler {
-        let count_number: Regex = Regex::new("[0-9+]").unwrap();
+        let count_number: Regex = Regex::new("[0-9]+").unwrap();
         let fullcount: Regex = Regex::new("<fullcount>(.*?)</fullcount>").unwrap();
         GmailHandler {
             fullcount: fullcount,
