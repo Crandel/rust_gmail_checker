@@ -15,7 +15,7 @@ git clone https://github.com/Crandel/rust_gmail_checker.git
 
 cd rust_gmail_checker
 
-cargo buils --release
+cargo build --release
 ```
 
 After building you could move the binary file inside your **PATH**
