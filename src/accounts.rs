@@ -1,4 +1,4 @@
-use utils::EmailType;
+use crate::utils::EmailType;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Account {
@@ -50,7 +50,7 @@ impl Account {
 #[cfg(test)]
 mod tests {
     use super::Account;
-    use utils::EmailType;
+    use crate::utils::EmailType;
     #[test]
     fn acc_test() {
         let mail_type = EmailType::Gmail;

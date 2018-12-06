@@ -1,5 +1,5 @@
 extern crate base64;
-use accounts::Account;
+use crate::accounts::Account;
 use hyper::header::HeaderMap;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]

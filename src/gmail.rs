@@ -1,7 +1,7 @@
-use accounts::Account;
+use crate::accounts::Account;
 use hyper::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use regex::Regex;
-use utils::{Basic, ServiceUrl};
+use crate::utils::{Basic, ServiceUrl};
 
 pub struct GmailHandler {
     fullcount: Regex,

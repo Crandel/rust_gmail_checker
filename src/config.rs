@@ -1,9 +1,9 @@
-use accounts::Account;
+use crate::accounts::Account;
 use dirs;
 use serde_json;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Write};
-use utils::EmailType;
+use crate::utils::EmailType;
 
 #[derive(Debug)]
 pub enum ConfigError {
