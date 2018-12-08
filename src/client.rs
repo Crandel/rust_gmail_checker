@@ -35,11 +35,11 @@ impl WebClient {
         header: &HeaderMap,
     ) -> impl Future<Item = String, Error = WebClientError> {
         self.send_internal(url, header)
-            .map_err(|e| WebClientError::HyperError(e))
+            .map_err(WebClientError::HyperError)
             .and_then(|response| {
                 let is_success = response.status().is_success();
                 response.into_body().concat2().then(move |result| {
-                    let chunk = result.map_err(|e| WebClientError::HyperError(e))?;
+                    let chunk = result.map_err(WebClientError::HyperError)?;
                     if is_success {
                         let bytes = chunk.into_bytes();
                         let text: String = String::from_utf8_lossy(&bytes).into_owned();
