@@ -1,20 +1,20 @@
 use crate::accounts::Account;
+use crate::utils::{Basic, ServiceUrl};
 use hyper::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 use regex::Regex;
-use crate::utils::{Basic, ServiceUrl};
 
 pub struct GmailHandler {
     fullcount: Regex,
     count_number: Regex,
 }
 
-impl GmailHandler {
-    pub fn new() -> GmailHandler {
+impl Default for GmailHandler {
+    fn default() -> GmailHandler {
         let count_number: Regex = Regex::new("[0-9]+").unwrap();
         let fullcount: Regex = Regex::new("<fullcount>(.*?)</fullcount>").unwrap();
         GmailHandler {
-            fullcount: fullcount,
-            count_number: count_number,
+            fullcount,
+            count_number,
         }
     }
 }

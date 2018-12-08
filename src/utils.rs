@@ -23,10 +23,7 @@ pub struct Basic {
 
 impl Basic {
     pub fn new(username: String, password: String) -> Basic {
-        Basic {
-            username: username,
-            password: password,
-        }
+        Basic { username, password }
     }
     pub fn encode_tostr(&self) -> String {
         let mut auth_str = String::from("Basic ");

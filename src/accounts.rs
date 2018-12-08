@@ -14,16 +14,16 @@ impl Account {
     pub fn new(
         mail_type: EmailType,
         account: String,
-        short: String,
+        short_conky: String,
         email: String,
         password: String,
     ) -> Account {
         Account {
-            mail_type: mail_type,
-            account: account,
-            short_conky: short,
-            email: email,
-            password: password,
+            mail_type,
+            account,
+            short_conky,
+            email,
+            password,
         }
     }
 

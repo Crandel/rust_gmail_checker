@@ -31,10 +31,10 @@ fn main() {
             return;
         }
     };
-    let web_client = WebClient::new();
+    let web_client: WebClient = Default::default();
 
     let mut runtime = Runtime::new().unwrap();
-    let gmail_handler = GmailHandler::new();
+    let gmail_handler: GmailHandler = Default::default();
 
     // get number of unreaded messages for each acc
     for acc in &accs {
@@ -46,7 +46,7 @@ fn main() {
         let uri: Uri = handler.get_url().parse().unwrap();
         let headers = handler.create_headers(acc);
 
-        let response = runtime.block_on(web_client.send(uri, headers)).unwrap();
+        let response = runtime.block_on(web_client.send(uri, &headers)).unwrap();
         // extract necessary info using Regex
         let result = handler.extract_result(response);
         // Save result as String

@@ -1,9 +1,9 @@
 use crate::accounts::Account;
+use crate::utils::EmailType;
 use dirs;
 use serde_json;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read, Write};
-use crate::utils::EmailType;
 
 #[derive(Debug)]
 pub enum ConfigError {
@@ -61,7 +61,7 @@ Sample config file  '{}' was created, please fill all neccessary fields",
     };
     let mut data = String::new();
     file.read_to_string(&mut data)
-        .expect(&format!("couldn't read to string {}", &json_path));
+        .unwrap_or_else(|_| panic!(format!("Couldn't read to string {}", &json_path)));
     let acc_vec: Vec<Account> = serde_json::from_str(&data).unwrap();
 
     Ok(acc_vec)
