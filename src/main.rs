@@ -46,9 +46,12 @@ fn main() {
         let uri: Uri = handler.get_url().parse().unwrap();
         let headers = handler.create_headers(acc);
 
-        let response = runtime.block_on(web_client.send(uri, &headers)).unwrap();
+        let response = runtime.block_on(web_client.send(uri, &headers));
+        let mut result = String::from("E");
         // extract necessary info using Regex
-        let result = handler.extract_result(response);
+        if response.is_ok() {
+            result = handler.extract_result(response.unwrap());
+        }
         // Save result as String
         account_messages.push(format!("{}:{}", acc.get_short(), result));
     }

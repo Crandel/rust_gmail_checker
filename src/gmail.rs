@@ -24,13 +24,12 @@ impl ServiceUrl for GmailHandler {
         "https://mail.google.com/mail/feed/atom"
     }
 
-    fn extract_result(&self, body_str: String) -> String {
-        let str_body = body_str.as_str();
-        let result = match self.fullcount.find(str_body) {
+    fn extract_result(&self, body_res: String) -> String {
+        let result = match self.fullcount.find(body_res.as_str()) {
             Some(count) => {
-                let fullcount_str = &str_body[count.start()..count.end()];
+                let fullcount_str = count.as_str();
                 match self.count_number.find(fullcount_str) {
-                    Some(res) => &fullcount_str[res.start()..res.end()],
+                    Some(res) => res.as_str(),
                     None => "",
                 }
             }
