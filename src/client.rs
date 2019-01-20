@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use futures::Future;
 use futures::Stream;
 use hyper;
@@ -23,7 +25,9 @@ pub struct WebClient {
 impl Default for WebClient {
     fn default() -> Self {
         let https = HttpsConnector::new(4).unwrap();
-        let client: Client<_, Body> = Client::builder().build(https);
+        let client: Client<_, Body> = Client::builder()
+            .keep_alive_timeout(Some(Duration::from_secs(20)))
+            .build(https);
         Self { client }
     }
 }
