@@ -1,5 +1,4 @@
-use crate::accounts::Account;
-use crate::utils::EmailType;
+use crate::accounts::{Account, EmailType};
 use dirs;
 use serde_json;
 use std::fs::File;

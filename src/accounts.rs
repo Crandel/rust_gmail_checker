@@ -1,4 +1,4 @@
-use crate::utils::EmailType;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Account {
@@ -45,6 +45,13 @@ impl Account {
     pub fn get_mail_type(&self) -> EmailType {
         self.mail_type
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum EmailType {
+    Gmail,
+    ProtonMail,
 }
 
 #[cfg(test)]

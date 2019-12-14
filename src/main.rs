@@ -1,16 +1,13 @@
-extern crate gmail_lib;
-extern crate hyper;
-extern crate itertools;
-extern crate tokio;
-
+use gmail_lib;
 use hyper::Uri;
 use itertools::Itertools;
 use tokio::runtime::Runtime;
 
+use gmail_lib::accounts::EmailType;
 use gmail_lib::client::WebClient;
 use gmail_lib::config;
 use gmail_lib::gmail::GmailHandler;
-use gmail_lib::utils::{EmailType, ServiceUrl};
+use gmail_lib::utils::ServiceUrl;
 
 fn main() {
     let mut account_messages = Vec::new();

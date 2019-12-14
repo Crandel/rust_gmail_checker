@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use failure::Fail;
 use futures::Future;
 use futures::Stream;
 use hyper;

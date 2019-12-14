@@ -1,13 +1,6 @@
-extern crate base64;
 use crate::accounts::Account;
+use base64;
 use hyper::header::HeaderMap;
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Copy, Clone)]
-#[serde(rename_all = "snake_case")]
-pub enum EmailType {
-    Gmail,
-    ProtonMail,
-}
 
 pub trait ServiceUrl {
     fn get_url(&self) -> &str;

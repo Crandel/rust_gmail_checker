@@ -1,15 +1,3 @@
-extern crate dirs;
-#[macro_use]
-extern crate failure;
-extern crate futures;
-extern crate hyper;
-extern crate hyper_tls;
-extern crate regex;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
 pub mod accounts;
 pub mod client;
 pub mod config;
