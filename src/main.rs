@@ -1,18 +1,16 @@
-extern crate gmail_lib;
-extern crate hyper;
-extern crate itertools;
-extern crate tokio;
+mod accounts;
+mod client;
+mod config;
+mod gmail;
+mod utils;
 
-use hyper::Uri;
-use itertools::Itertools;
-use tokio::runtime::Runtime;
+use client::WebClient;
+use config;
+use gmail::GmailHandler;
+use utils::{EmailType, ServiceUrl};
 
-use gmail_lib::client::WebClient;
-use gmail_lib::config;
-use gmail_lib::gmail::GmailHandler;
-use gmail_lib::utils::{EmailType, ServiceUrl};
-
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut account_messages = Vec::new();
     // config filename
     let config_file = ".email.json";
@@ -33,7 +31,6 @@ fn main() {
     };
     let web_client: WebClient = Default::default();
 
-    let mut runtime = Runtime::new().unwrap();
     let gmail_handler: GmailHandler = Default::default();
 
     // get number of unreaded messages for each acc
@@ -43,10 +40,7 @@ fn main() {
             _ => &gmail_handler,
         };
 
-        let uri: Uri = handler.get_url().parse().unwrap();
-        let headers = handler.create_headers(acc);
-
-        let response = runtime.block_on(web_client.send(uri, &headers));
+        web_client.send(handler.get_url(), acc.get_email(), acc.get_password());
         let mut result = String::from("E");
         // extract necessary info using Regex
         if response.is_ok() {

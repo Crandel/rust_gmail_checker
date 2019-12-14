@@ -1,4 +1,9 @@
+crate serde;
+crate serde_derive::derive;
+crate serde_json;
+
 use crate::utils::EmailType;
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Account {
@@ -10,13 +15,13 @@ pub struct Account {
 }
 
 impl Account {
-    // Account constructor
     pub fn new(
+    // Account constructor
+        password: String,
         mail_type: EmailType,
         account: String,
         short_conky: String,
         email: String,
-        password: String,
     ) -> Account {
         Account {
             mail_type,

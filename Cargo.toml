@@ -2,16 +2,11 @@
 name = "rust_gmail"
 version = "1.0.0"
 authors = ["Crandel <cradlemann@gmail.com>"]
-
+edition = "2018"
 license-file = "LICENSE"
-
-[lib]
-name = "gmail_lib"
-path = "src/lib.rs"
 
 [dependencies]
 dirs = "2.0.2"
-failure = "0.1"
 futures = "0.3"
 itertools = "0.7"
 regex = "1.3.1"
