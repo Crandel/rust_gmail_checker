@@ -1,11 +1,8 @@
-use crate::accounts::Account;
 use base64;
-use hyper::header::HeaderMap;
 
 pub trait ServiceUrl {
     fn get_url(&self) -> &str;
     fn extract_result(&self, body_res: String) -> String;
-    fn create_headers(&self, acc: &Account) -> HeaderMap;
 }
 
 #[derive(Debug)]

@@ -57,7 +57,7 @@ pub enum EmailType {
 #[cfg(test)]
 mod tests {
     use super::Account;
-    use crate::utils::EmailType;
+    use super::EmailType;
     #[test]
     fn acc_test() {
         let mail_type = EmailType::Gmail;

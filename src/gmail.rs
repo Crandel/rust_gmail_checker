@@ -1,6 +1,4 @@
-use crate::accounts::Account;
-use crate::utils::{Basic, ServiceUrl};
-use hyper::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+use crate::utils::ServiceUrl;
 use regex::Regex;
 
 pub struct GmailHandler {
@@ -38,17 +36,4 @@ impl ServiceUrl for GmailHandler {
         String::from(result)
     }
 
-    fn create_headers(&self, acc: &Account) -> HeaderMap {
-        let basic = Basic::new(
-            String::from(acc.get_email()),
-            String::from(acc.get_password()),
-        );
-        let base_str = basic.encode_tostr();
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(base_str.as_str()).unwrap(),
-        );
-        headers
-    }
 }

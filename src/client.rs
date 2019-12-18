@@ -3,12 +3,25 @@ use std::time::Duration;
 use failure::Fail;
 use futures::Future;
 use futures::Stream;
-use hyper;
-use hyper::client::HttpConnector;
-use hyper::client::ResponseFuture;
-use hyper::header::HeaderMap;
-use hyper::{Body, Client, Method, Request, Uri};
+use hyper::{
+    client::{
+        HttpConnector,
+        ResponseFuture
+    },
+    header::{
+        HeaderMap,
+        HeaderValue,
+        AUTHORIZATION
+    },
+    Body,
+    Client,
+    Method,
+    Request,
+    Uri
+};
 use hyper_tls::HttpsConnector;
+
+use crate::utils::Basic;
 
 /// Custom errors that may happen during calls
 #[derive(Debug, Fail)]
@@ -36,10 +49,14 @@ impl Default for WebClient {
 impl WebClient {
     pub fn send(
         &self,
-        url: Uri,
-        header: &HeaderMap,
+        url: &str,
+        username: &str,
+        password: &str
     ) -> impl Future<Item = String, Error = WebClientError> {
-        self.send_internal(url, header)
+        let uri: Uri = url.parse::<Uri>().unwrap();
+        let headers = self.create_headers(username, password);
+
+        self.send_internal(uri, &headers)
             .map_err(WebClientError::HyperError)
             .and_then(|response| {
                 let is_success = response.status().is_success();
@@ -69,4 +86,19 @@ impl WebClient {
         }
         self.client.request(request)
     }
+
+    fn create_headers(&self, username: &str, password: &str) -> HeaderMap {
+        let basic = Basic::new(
+            String::from(username),
+            String::from(password)
+        );
+        let base_str = basic.encode_tostr();
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(base_str.as_str()).unwrap(),
+        );
+        headers
+    }
+
 }

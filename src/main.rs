@@ -1,13 +1,14 @@
 use gmail_lib;
-use hyper::Uri;
 use itertools::Itertools;
 use tokio::runtime::Runtime;
 
-use gmail_lib::accounts::EmailType;
-use gmail_lib::client::WebClient;
-use gmail_lib::config;
-use gmail_lib::gmail::GmailHandler;
-use gmail_lib::utils::ServiceUrl;
+use gmail_lib::{
+    accounts::EmailType,
+    client::WebClient,
+    config,
+    gmail::GmailHandler,
+    utils::ServiceUrl
+};
 
 fn main() {
     let mut account_messages = Vec::new();
@@ -40,10 +41,9 @@ fn main() {
             _ => &gmail_handler,
         };
 
-        let uri: Uri = handler.get_url().parse().unwrap();
-        let headers = handler.create_headers(acc);
-
-        let response = runtime.block_on(web_client.send(uri, &headers));
+        let response = runtime.block_on(web_client.send(handler.get_url(),
+                                                        acc.get_email(),
+                                                        acc.get_password()));
         let mut result = String::from("E");
         // extract necessary info using Regex
         if response.is_ok() {
