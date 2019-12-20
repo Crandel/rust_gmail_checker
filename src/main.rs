@@ -44,14 +44,12 @@ fn main() {
             let response = runtime.block_on(web_client.send(handler.get_url(),
                                                             acc.get_email(),
                                                             acc.get_password()));
-            // extract necessary info using Regex
-            let result = if response.is_ok() {
-                handler.extract_result(response.unwrap())
-            } else {
-                String::from("E")
+            let body = match response {
+                Ok(bod) => handler.extract_result(bod),
+                _ => String::from("E")
             };
-            // Save result as String
-            String::from(format!("{}:{}", acc.get_short(), result))
+            // extract necessary info using Regex
+            String::from(format!("{}:{}", acc.get_short(), body))
         }).collect();
 
     println!("{}", account_messages.iter().join(" "));
