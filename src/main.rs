@@ -4,7 +4,10 @@ use tokio::runtime::Runtime;
 
 use gmail_lib::{
     accounts::EmailType,
-    client::WebClient,
+    client::{
+        WebClient,
+        WebClientError
+    },
     config,
     gmail::GmailHandler,
     utils::ServiceUrl
@@ -46,7 +49,10 @@ fn main() {
                                                             acc.get_password()));
             let body = match response {
                 Ok(bod) => handler.extract_result(bod),
-                _ => String::from("E")
+                Err(e) => match e {
+                    WebClientError::HyperError(_) => String::from("HE"),
+                    WebClientError::ConnectionError(_) => String::from("CE")
+                }
             };
             // extract necessary info using Regex
             String::from(format!("{}:{}", acc.get_short(), body))
