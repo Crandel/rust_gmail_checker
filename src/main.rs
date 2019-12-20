@@ -27,7 +27,7 @@ fn main() {
                 config::ConfigError::FileError(s) => s,
                 _ => String::from(""),
             };
-            println!("{}", error);
+            eprintln!("{}", error);
             return;
         }
     };
@@ -50,8 +50,14 @@ fn main() {
             let body = match response {
                 Ok(bod) => handler.extract_result(bod),
                 Err(e) => match e {
-                    WebClientError::HyperError(_) => String::from("HE"),
-                    WebClientError::ConnectionError(_) => String::from("CE")
+                    WebClientError::HyperError(he) => {
+                        eprintln!("{}", he);
+                        String::from("HE")
+                    },
+                    WebClientError::ConnectionError(ce) => {
+                        eprintln!("{}", ce);
+                        String::from("CE")
+                    }
                 }
             };
             // extract necessary info using Regex

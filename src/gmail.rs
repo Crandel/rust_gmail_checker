@@ -28,10 +28,16 @@ impl ServiceUrl for GmailHandler {
                 let fullcount_str = count.as_str();
                 match self.count_number.find(fullcount_str) {
                     Some(res) => res.as_str(),
-                    None => "NE",
+                    None => {
+                        eprintln!("Count in '{}' not found", fullcount_str);
+                        "NE"
+                    },
                 }
             }
-            None => "FE",
+            None => {
+                eprintln!("Full count string not found");
+                "FE"
+            },
         };
         String::from(result)
     }
