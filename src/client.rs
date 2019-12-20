@@ -2,22 +2,23 @@ use std::time::Duration;
 
 use failure::Fail;
 use futures::Future;
-use futures::Stream;
 use hyper::{
     client::{
         HttpConnector,
         ResponseFuture
     },
-    header::{
-        HeaderMap,
-        HeaderValue,
-        AUTHORIZATION
-    },
     Body,
     Client,
+    Error,
     Method,
     Request,
+    Response,
     Uri
+};
+use http::header::{
+    HeaderMap,
+    HeaderValue,
+    AUTHORIZATION
 };
 use hyper_tls::HttpsConnector;
 
@@ -27,18 +28,18 @@ use crate::utils::Basic;
 #[derive(Debug, Fail)]
 pub enum WebClientError {
     #[fail(display = "Hyper error: {:?}", _0)]
-    HyperError(hyper::Error),
+    HyperError(Error),
     #[fail(display = "Connection error: {:?}", _0)]
     ConnectionError(String),
 }
 
 pub struct WebClient {
-    client: Client<HttpsConnector<HttpConnector>, hyper::Body>,
+    client: Client<HttpsConnector<HttpConnector>, Body>,
 }
 
 impl Default for WebClient {
     fn default() -> Self {
-        let https = HttpsConnector::new(4).unwrap();
+        let https = HttpsConnector::new();
         let client: Client<_, Body> = Client::builder()
             .keep_alive_timeout(Some(Duration::from_secs(20)))
             .build(https);
@@ -52,27 +53,11 @@ impl WebClient {
         url: &str,
         username: &str,
         password: &str
-    ) -> impl Future<Item = String, Error = WebClientError> {
+    ) -> ResponseFuture {
         let uri: Uri = url.parse::<Uri>().unwrap();
         let headers = self.create_headers(username, password);
 
         self.send_internal(uri, &headers)
-            .map_err(WebClientError::HyperError)
-            .and_then(|response| {
-                let is_success = response.status().is_success();
-                response.into_body().concat2().then(move |result| {
-                    let chunk = result.map_err(WebClientError::HyperError)?;
-                    if is_success {
-                        let bytes = chunk.into_bytes();
-                        let text: String = String::from_utf8_lossy(&bytes).into_owned();
-                        Ok(text)
-                    } else {
-                        let bytes = chunk.into_bytes();
-                        let text: String = String::from_utf8_lossy(&bytes).into_owned();
-                        Err(WebClientError::ConnectionError(text))
-                    }
-                })
-            })
     }
 
     fn send_internal(&self, url: Uri, headers: &HeaderMap) -> ResponseFuture {

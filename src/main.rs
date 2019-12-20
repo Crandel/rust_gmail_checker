@@ -1,17 +1,27 @@
 use gmail_lib;
+
 use itertools::Itertools;
-use tokio::runtime::Runtime;
+
+use hyper::{
+    Client,
+    body::HttpBody as _,
+    Response
+};
+use tokio::io::{self, AsyncWriteExt as _};
 
 use gmail_lib::{
-    accounts::EmailType,
+    accounts::{Account, EmailType},
     client::WebClient,
     config,
     gmail::GmailHandler,
     utils::ServiceUrl
 };
 
-fn main() {
-    let mut account_messages = Vec::new();
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+
+
+#[tokio::main]
+async fn main() -> Result<()>{
     // config filename
     let config_file = ".email.json";
     // gmail url
@@ -31,27 +41,29 @@ fn main() {
     };
     let web_client: WebClient = Default::default();
 
-    let mut runtime = Runtime::new().unwrap();
     let gmail_handler: GmailHandler = Default::default();
 
     // get number of unreaded messages for each acc
-    for acc in &accs {
-        let handler = match acc.get_mail_type() {
-            EmailType::Gmail => &gmail_handler,
-            _ => &gmail_handler,
-        };
-
-        let response = runtime.block_on(web_client.send(handler.get_url(),
-                                                        acc.get_email(),
-                                                        acc.get_password()));
-        let mut result = String::from("E");
-        // extract necessary info using Regex
-        if response.is_ok() {
-            result = handler.extract_result(response.unwrap());
-        }
-        // Save result as String
-        account_messages.push(format!("{}:{}", acc.get_short(), result));
-    }
+    let account_messages: Vec<String> = accs.into_iter().map(|acc| {
+        call_mail(acc, gmail_handler, web_client)
+    }).collect();
 
     println!("{}", account_messages.iter().rev().join(" "));
+    Ok(())
+}
+
+async fn call_mail(acc: Account, service: ServiceUrl, client: WebClient) -> Result<String> {
+    let handler = match acc.get_mail_type() {
+        EmailType::Gmail => &service,
+        _ => &service,
+    };
+
+    let response = client.send(handler.get_url(),
+                               acc.get_email(),
+                               acc.get_password()).await;
+
+    match response {
+        Ok(Response(body)) => Ok(handler.extract_result(body)),
+        Err(e)=> Err(e)
+    }
 }
