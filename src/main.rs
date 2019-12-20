@@ -11,7 +11,6 @@ use gmail_lib::{
 };
 
 fn main() {
-    let mut account_messages = Vec::new();
     // config filename
     let config_file = ".email.json";
     // gmail url
@@ -35,23 +34,25 @@ fn main() {
     let gmail_handler: GmailHandler = Default::default();
 
     // get number of unreaded messages for each acc
-    for acc in &accs {
-        let handler = match acc.get_mail_type() {
-            EmailType::Gmail => &gmail_handler,
-            _ => &gmail_handler,
-        };
+    let account_messages: Vec<String> = accs.into_iter().map(
+        |acc| {
+            let handler = match acc.get_mail_type() {
+                EmailType::Gmail => &gmail_handler,
+                _ => &gmail_handler,
+            };
 
-        let response = runtime.block_on(web_client.send(handler.get_url(),
-                                                        acc.get_email(),
-                                                        acc.get_password()));
-        let mut result = String::from("E");
-        // extract necessary info using Regex
-        if response.is_ok() {
-            result = handler.extract_result(response.unwrap());
-        }
-        // Save result as String
-        account_messages.push(format!("{}:{}", acc.get_short(), result));
-    }
+            let response = runtime.block_on(web_client.send(handler.get_url(),
+                                                            acc.get_email(),
+                                                            acc.get_password()));
+            // extract necessary info using Regex
+            let result = if response.is_ok() {
+                handler.extract_result(response.unwrap())
+            } else {
+                String::from("E")
+            };
+            // Save result as String
+            String::from(format!("{}:{}", acc.get_short(), result))
+        }).collect();
 
-    println!("{}", account_messages.iter().rev().join(" "));
+    println!("{}", account_messages.iter().join(" "));
 }
