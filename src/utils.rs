@@ -16,10 +16,8 @@ impl Basic {
         Basic { username, password }
     }
     pub fn encode_tostr(&self) -> String {
-        let mut auth_str = String::from("Basic ");
         let user_data = format!("{}:{}", self.username, self.password);
         let b64 = base64::encode(user_data.as_bytes());
-        auth_str.push_str(b64.as_str());
-        auth_str
+        format!("Basic {}", b64)
     }
 }
