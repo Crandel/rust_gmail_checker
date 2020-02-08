@@ -5,13 +5,14 @@ use tokio::runtime::Runtime;
 use gmail_lib::{
     accounts::EmailType,
     client::{
-        WebClient,
+        WebClientImpl,
         WebClientError
     },
     config,
     gmail::GmailHandler,
     utils::ServiceUrl
 };
+use hyper::client::ResponseFuture;
 
 fn main() {
     // config filename
@@ -31,22 +32,26 @@ fn main() {
             return;
         }
     };
-    let web_client: WebClient = Default::default();
+    let web_client: WebClientImpl = Default::default();
 
     let mut runtime = Runtime::new().unwrap();
     let gmail_handler: GmailHandler = Default::default();
 
     // get number of unreaded messages for each acc
-    let account_messages: Vec<String> = accs.into_iter().map(
+    let account_futures: Vec<ResponseFuture> = accs.into_iter().map(
         |acc| {
             let handler = match acc.get_mail_type() {
                 EmailType::Gmail => &gmail_handler,
                 _ => &gmail_handler,
             };
 
-            let response = runtime.block_on(web_client.send(handler.get_url(),
-                                                            acc.get_email(),
-                                                            acc.get_password()));
+            web_client.send(handler.get_url(),
+                            acc.get_email(),
+                            acc.get_password()));
+        }).collect()
+
+
+            let response = runtime.block_on(
             let body = match response {
                 Ok(bod) => handler.extract_result(bod),
                 Err(e) => match e {
