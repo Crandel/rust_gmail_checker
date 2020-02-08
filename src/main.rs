@@ -13,6 +13,7 @@ use gmail_lib::{
     utils::ServiceUrl
 };
 use hyper::client::ResponseFuture;
+use futures::{Future, Stream};
 
 fn main() {
     // config filename
@@ -38,20 +39,36 @@ fn main() {
     let gmail_handler: GmailHandler = Default::default();
 
     // get number of unreaded messages for each acc
-    let account_futures: Vec<ResponseFuture> = accs.into_iter().map(
+    let account_futures: Vec<String> = accs.into_iter().map(
         |acc| {
             let handler = match acc.get_mail_type() {
                 EmailType::Gmail => &gmail_handler,
                 _ => &gmail_handler,
             };
 
-            web_client.send(handler.get_url(),
-                            acc.get_email(),
-                            acc.get_password()));
-        }).collect()
 
 
             let response = runtime.block_on(
+                web_client.send(handler.get_url(),
+                                acc.get_email(),
+                                acc.get_password())
+                    .map_err(WebClientError::HyperError)
+                    .and_then(|response| {
+                        let is_success = response.status().is_success();
+                        response.into_body().concat2().then(move |result| {
+                            let chunk = result.map_err(WebClientError::HyperError)?;
+                            if is_success {
+                                let bytes = chunk.into_bytes();
+                                let text: String = String::from_utf8_lossy(&bytes).into_owned();
+                                Ok(text)
+                            } else {
+                                let bytes = chunk.into_bytes();
+                                let text: String = String::from_utf8_lossy(&bytes).into_owned();
+                                Err(WebClientError::ConnectionError(text))
+                            }
+                        })
+                    })
+            );
             let body = match response {
                 Ok(bod) => handler.extract_result(bod),
                 Err(e) => match e {
@@ -69,5 +86,5 @@ fn main() {
             String::from(format!("{}:{}", acc.get_short(), body))
         }).collect();
 
-    println!("{}", account_messages.iter().join(" "));
+    println!("{}", account_futures.iter().join(" "));
 }

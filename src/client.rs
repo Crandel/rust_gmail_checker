@@ -1,15 +1,12 @@
 use std::time::Duration;
 
 use failure::Fail;
-use futures::Future;
-use futures::Stream;
 use hyper::{
     client::{
         HttpConnector,
         ResponseFuture
     },
     header::{
-        HeaderMap,
         HeaderValue,
         AUTHORIZATION
     },
@@ -55,15 +52,14 @@ impl Default for WebClientImpl {
     }
 }
 
-impl WebClient for WebClientImpl {
-    fn send(
+impl WebClientImpl {
+    pub fn send(
         &self,
         url: &str,
         username: &str,
         password: &str,
     ) -> ResponseFuture {
         let uri: Uri = url.parse::<Uri>().unwrap();
-        let headers = self.create_headers(username, password);
 
         let basic = Basic::new(String::from(username), String::from(password));
         let base_str = basic.encode_tostr();
