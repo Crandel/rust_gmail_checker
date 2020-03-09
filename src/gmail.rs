@@ -1,4 +1,4 @@
-use crate::utils::ServiceUrl;
+use crate::utils::Extractor;
 use regex::Regex;
 
 pub struct GmailHandler {
@@ -17,7 +17,7 @@ impl Default for GmailHandler {
     }
 }
 
-impl ServiceUrl for GmailHandler {
+impl Extractor for GmailHandler {
     fn get_url(&self) -> &str {
         "https://mail.google.com/mail/feed/atom"
     }
@@ -31,15 +31,14 @@ impl ServiceUrl for GmailHandler {
                     None => {
                         eprintln!("Count in '{}' not found", fullcount_str);
                         "NE"
-                    },
+                    }
                 }
             }
             None => {
                 eprintln!("Full count string not found");
                 "FE"
-            },
+            }
         };
         String::from(result)
     }
-
 }

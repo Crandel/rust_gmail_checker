@@ -10,7 +10,10 @@ pub enum ConfigError {
     IOError(Error),
 }
 
-pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
+pub fn get_config_data() -> Result<Vec<Account>, ConfigError> {
+    // config filename
+    let config_file = ".email.json";
+
     // Get home directory
     let json_path: String = match dirs::home_dir() {
         Some(path_obj) => match path_obj.to_str() {

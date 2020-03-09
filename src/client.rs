@@ -1,24 +1,12 @@
-use std::time::Duration;
-
+use crate::utils::{encode_tostr, Extractor};
+use async_trait::async_trait;
 use failure::Fail;
 use hyper::{
-    client::{
-        HttpConnector,
-        ResponseFuture
-    },
-    header::{
-        HeaderValue,
-        AUTHORIZATION
-    },
-    Body,
-    Client,
-    Method,
-    Request,
-    Uri
+    client::HttpConnector,
+    header::{HeaderValue, AUTHORIZATION},
+    Body, Client, Method, Request, Uri,
 };
 use hyper_tls::HttpsConnector;
-
-use crate::utils::Basic;
 
 /// Custom errors that may happen during calls
 #[derive(Debug, Fail)]
@@ -29,13 +17,9 @@ pub enum WebClientError {
     ConnectionError(String),
 }
 
+#[async_trait]
 pub trait WebClient {
-    fn send(
-        &self,
-        url: &str,
-        username: &str,
-        password: &str,
-    ) -> ResponseFuture;
+    async fn send(&self, username: &str, password: &str, handler: dyn Extractor) -> String;
 }
 
 pub struct WebClientImpl {
@@ -44,31 +28,44 @@ pub struct WebClientImpl {
 
 impl Default for WebClientImpl {
     fn default() -> Self {
-        let https = HttpsConnector::new(4).unwrap();
-        let client: Client<_, Body> = Client::builder()
-            .keep_alive_timeout(Some(Duration::from_secs(20)))
-            .build(https);
+        let https = HttpsConnector::new();
+        let client: Client<_, Body> = Client::builder().build::<_, hyper::Body>(https);
         Self { client }
     }
 }
 
 impl WebClientImpl {
-    pub fn send(
-        &self,
-        url: &str,
-        username: &str,
-        password: &str,
-    ) -> ResponseFuture {
-        let uri: Uri = url.parse::<Uri>().unwrap();
+    async fn get_request(&self, username: &str, password: &str, url: String) -> Request<Body> {
+        let uri = Uri::from_static(&url.to_owned());
 
-        let basic = Basic::new(String::from(username), String::from(password));
-        let base_str = basic.encode_tostr();
+        let auth_str = encode_tostr(username, password);
+
+        // Await the response...
         let mut request = Request::builder()
             .method(Method::GET)
-            .uri(url)
+            .uri(uri)
             .body(Body::empty())
             .unwrap();
-        request.headers_mut().insert(AUTHORIZATION, HeaderValue::from_str(base_str.as_str()).unwrap());
-        self.client.request(request)
+
+        request
+            .headers_mut()
+            .insert(AUTHORIZATION, HeaderValue::from_str(&auth_str).unwrap());
+        request
+    }
+}
+
+#[async_trait]
+impl WebClient for WebClientImpl {
+    async fn send(&self, username: &str, password: &str, handler: dyn Extractor) -> String {
+        let request = self
+            .get_request(username, password, String::from(handler.get_url()))
+            .await;
+        let resp = self.client.request(request).await.unwrap();
+        let bytes = hyper::body::to_bytes(resp.into_body()).await.unwrap();
+        let body_str = std::str::from_utf8(&bytes)
+            .expect("Valid utf-8 string")
+            .to_string();
+        let body = handler.extract_result(body_str);
+        String::from(format!("{}:{}", "Z", body))
     }
 }
