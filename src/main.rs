@@ -8,11 +8,8 @@ use hyper::{
 use hyper_tls::HttpsConnector;
 use mail::{
     accounts::Account,
+    client::{RequestInfo, WebClientImpl},
     config,
-    client::{
-        RequestInfo,
-        WebClientImpl
-    },
 };
 
 #[tokio::main]
@@ -44,14 +41,16 @@ fn main() {
                 EmailType::Gmail => &gmail_handler,
                 _ => &gmail_handler,
             };
-            let request_info = RequestInfo::new(String::from(acc.get_email()), 
-                                                String::from(acc.get_password()),
-                                                handler)
-            web_client.send(request_info)
+            let request_info = RequestInfo::new(
+                String::from(acc.get_email()),
+                String::from(acc.get_password()),
+                handler,
+            );
+            web_client.send(request_info);
         })
         .collect::<FuturesUnordered<_>>()
         .collect::<Vec<_>>()
-        .await
+        .await;
 
     println!("{}", account_strings.iter().join(" "));
 }

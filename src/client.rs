@@ -19,7 +19,7 @@ pub enum WebClientError {
 
 #[async_trait]
 pub trait WebClient {
-    async fn send(&self, username: &str, password: &str, handler: dyn Extractor) -> String;
+    async fn send(&self, username: &str, password: &str, handler: &dyn Extractor) -> String;
 }
 
 pub struct WebClientImpl {
@@ -56,9 +56,10 @@ impl WebClientImpl {
 
 #[async_trait]
 impl WebClient for WebClientImpl {
-    async fn send(&self, username: &str, password: &str, handler: dyn Extractor) -> String {
+    async fn send(&self, username: &str, password: &str, handler: &dyn Extractor) -> String {
+        let url = handler.get_url();
         let request = self
-            .get_request(username, password, String::from(handler.get_url()))
+            .get_request(username, password, String::from(url))
             .await;
         let resp = self.client.request(request).await.unwrap();
         let bytes = hyper::body::to_bytes(resp.into_body()).await.unwrap();
