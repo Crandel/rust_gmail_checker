@@ -2,7 +2,7 @@ use crate::accounts::{Account, EmailType};
 use dirs;
 use serde_json;
 use std::fs::File;
-use std::io::{Error, ErrorKind, Read, Write};
+use std::io::{Error, Read, Write};
 
 #[derive(Debug)]
 pub enum ConfigError {
@@ -10,58 +10,37 @@ pub enum ConfigError {
     IOError(Error),
 }
 
+fn create_example() -> String {
+    let acc = Account::new(
+        EmailType::Gmail,
+        String::from("username"),
+        String::from("Short"),
+        String::from("email"),
+        String::from("password"),
+    );
+    let def_vec_acc = vec![acc];
+    serde_json::to_string(&def_vec_acc).unwrap()
+}
+
 pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
     // Get home directory
-    let json_path: String = match dirs::home_dir() {
-        Some(path_obj) => match path_obj.to_str() {
-            Some(path) => format!("{}/{}", path, config_file),
-            None => {
-                return Err(ConfigError::FileError(String::from(
-                    "Impossible to get your home dir!",
-                )))
-            }
-        },
-        None => {
-            return Err(ConfigError::FileError(String::from(
-                "Impossible to get your home dir!",
-            )))
-        }
-    };
+    let path = dirs::home_dir().unwrap();
+    let path_obj = path.to_str().unwrap();
+    let json_path: String = format!("{}/{}", path_obj, config_file);
 
-    let f = File::open(&json_path);
-    let mut file = match f {
+    let mut file: File = match File::open(&json_path) {
         Ok(file) => file,
-        Err(ref error) if error.kind() == ErrorKind::NotFound => {
-            let mut sample_file = match File::create(&json_path) {
-                Ok(fc) => fc,
-                Err(e) => return Err(ConfigError::IOError(e)),
-            };
-            let acc = Account::new(
-                EmailType::Gmail,
-                String::from("username"),
-                String::from("Short"),
-                String::from("email"),
-                String::from("password"),
-            );
-            let def_vec_acc = vec![acc];
-            let ser = serde_json::to_string(&def_vec_acc).unwrap();
-            match sample_file.write_all(ser.as_bytes()) {
-                Ok(_fs) => {
-                    return Err(ConfigError::FileError(format!(
-                        "There are no config file
-Sample config file  '{}' was created, please fill all neccessary fields",
-                        json_path
-                    )))
-                }
-                Err(error) => return Err(ConfigError::IOError(error)),
-            };
+        Err(_) => {
+            let mut f = File::create(&json_path).unwrap();
+            let ex_acc_s = create_example();
+            f.write_all(ex_acc_s.as_bytes()).unwrap();
+            panic!("File {} not found. New one was created", &json_path)
         }
-        Err(error) => return Err(ConfigError::IOError(error)),
     };
     let mut data = String::new();
-    file.read_to_string(&mut data)
-        .unwrap_or_else(|_| panic!(format!("Couldn't read to string {}", &json_path)));
-    let acc_vec: Vec<Account> = serde_json::from_str(&data).unwrap();
-
-    Ok(acc_vec)
+    file.read_to_string(&mut data).unwrap();
+    let accs: Result<Vec<Account>, ConfigError> = serde_json::from_str(&data).map_err(|err| {
+        ConfigError::FileError(format!("Extracting from json failed with error {}", err))
+    });
+    accs
 }

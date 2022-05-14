@@ -1,0 +1,6 @@
+image:
+  name: rust:latest
+
+test:
+  script:
+    - cargo test
