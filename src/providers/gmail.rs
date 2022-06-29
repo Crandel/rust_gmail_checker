@@ -4,7 +4,7 @@ use crate::{
     client::WebClientError::{ConnectionError, ParsingError},
     provider::MailProvider,
 };
-use async_trait::async_trait;
+pub(crate) use async_trait::async_trait;
 use hyper::{
     client::HttpConnector,
     header::{HeaderValue, AUTHORIZATION},
