@@ -6,6 +6,8 @@ use mail_lib::{
     accounts::Account, client::WebClientError, config, provider::MailProvider,
     providers::gmail::GmailProvider,
 };
+use std::env::args;
+use std::process::exit;
 
 async fn process_accs<T: MailProvider>(
     accs: Vec<Account>,
@@ -19,13 +21,34 @@ async fn process_accs<T: MailProvider>(
         .await
 }
 
+fn print_help() {
+    println!(
+        "-h - help message\n
+--help - help message\n
+--init - create sample config file\n
+"
+    );
+    exit(0)
+}
+
 #[tokio::main]
 async fn main() {
-    // config filename
-    let config_file = ".email.json";
-    // gmail url
-    // get data from config file
-    let data = config::get_config_data(config_file);
+    // Prints each argument on a separate line
+    for argument in args() {
+        match argument.as_str() {
+            "-h" => print_help(),
+            "--help" => print_help(),
+            "--init" => {
+                if let Err(config::ConfigError::FileError(e)) = config::create_example() {
+                    eprint!("File error{}", e)
+                };
+                return;
+            }
+            _ => continue,
+        }
+    }
+
+    let data = config::get_config_data();
     // extract accs info from Result
     let accs = match data {
         Ok(accs) => accs,

@@ -10,7 +10,10 @@ pub enum ConfigError {
     IOError(Error),
 }
 
-fn create_example() -> String {
+const CONFIG_FILE: &str = ".email.json";
+
+pub fn create_example() -> Result<(), ConfigError> {
+    let json_path: String = get_config_path();
     let acc = Account::new(
         EmailType::Gmail,
         String::from("username"),
@@ -19,22 +22,37 @@ fn create_example() -> String {
         String::from("password"),
     );
     let def_vec_acc = vec![acc];
-    serde_json::to_string(&def_vec_acc).unwrap()
+    let ex_acc_s: String = match serde_json::to_string(&def_vec_acc) {
+        Ok(vec_str) => vec_str,
+        Err(e) => return Err(ConfigError::FileError(e.to_string())),
+    };
+    let mut f: File = match File::create(&json_path) {
+        Ok(f) => f,
+        Err(e) => return Err(ConfigError::FileError(e.to_string())),
+    };
+    if let Err(e) = f.write_all(ex_acc_s.as_bytes()) {
+        return Err(ConfigError::FileError(e.to_string()));
+    };
+    Ok(())
 }
 
-pub fn get_config_data(config_file: &str) -> Result<Vec<Account>, ConfigError> {
+fn get_config_path() -> String {
     // Get home directory
     let path = dirs::home_dir().unwrap();
     let path_obj = path.to_str().unwrap();
-    let json_path: String = format!("{}/{}", path_obj, config_file);
+    format!("{}/{}", path_obj, CONFIG_FILE)
+}
+
+pub fn get_config_data() -> Result<Vec<Account>, ConfigError> {
+    let json_path: String = get_config_path();
 
     let mut file: File = match File::open(&json_path) {
         Ok(file) => file,
         Err(_) => {
-            let mut f = File::create(&json_path).unwrap();
-            let ex_acc_s = create_example();
-            f.write_all(ex_acc_s.as_bytes()).unwrap();
-            panic!("File {} not found. New one was created", &json_path)
+            return Err(ConfigError::FileError(format!(
+                "File {} not found. Use --init to create a sample config",
+                &json_path
+            )))
         }
     };
     let mut data = String::new();
