@@ -1,6 +1,6 @@
 [package]
 name = "gmail"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Crandel"]
 edition = "2021"
 license-file = "LICENSE"
@@ -11,13 +11,13 @@ path = "src/lib.rs"
 
 [dependencies]
 async-trait = "0.1"
-base64 = "0.13"
+base64 = "0.20"
 dirs = "4.0"
 thiserror = "1.0"
 futures = "0.3"
 hyper = { version = "0.14", features = ["full"] }
 hyper-tls = "0.5"
-roxmltree = "0.14"
+roxmltree = "0.16"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"

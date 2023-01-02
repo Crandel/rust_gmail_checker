@@ -26,6 +26,7 @@ fn print_help() {
         "-h - help message\n
 --help - help message\n
 --init - create sample config file\n
+-s - new line separator between accounts
 "
     );
     exit(0)
@@ -33,6 +34,7 @@ fn print_help() {
 
 #[tokio::main]
 async fn main() {
+    let mut separator = String::from(" ");
     // Prints each argument on a separate line
     for argument in args() {
         match argument.as_str() {
@@ -44,6 +46,7 @@ async fn main() {
                 };
                 return;
             }
+            "-s" => separator = String::from("\n"),
             _ => continue,
         }
     }
@@ -79,5 +82,5 @@ async fn main() {
     for error in errors {
         eprintln!("{}", error);
     }
-    println!("{}", responses.join(" "));
+    println!("{}", responses.join(&separator));
 }
