@@ -26,7 +26,7 @@ pub fn create_example() -> Result<(), ConfigError> {
         Ok(vec_str) => vec_str,
         Err(e) => return Err(ConfigError::FileError(e.to_string())),
     };
-    let mut f: File = match File::create(&json_path) {
+    let mut f: File = match File::create(json_path) {
         Ok(f) => f,
         Err(e) => return Err(ConfigError::FileError(e.to_string())),
     };

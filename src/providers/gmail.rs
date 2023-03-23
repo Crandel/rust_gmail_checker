@@ -18,6 +18,11 @@ use roxmltree::Document;
 pub struct GmailProvider {
     url: String,
 }
+impl Default for GmailProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl GmailProvider {
     pub fn new() -> GmailProvider {
