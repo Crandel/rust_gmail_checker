@@ -1,4 +1,5 @@
 use crate::{
+    accessor::TokenAccessor,
     accounts::Account,
     client::WebClientError,
     client::WebClientError::{ConnectionError, ParsingError},
@@ -16,7 +17,9 @@ use base64;
 use roxmltree::Document;
 
 pub struct GmailProvider {
-    url: String,
+    feed_url: String,
+    auth_url: String,
+    token_url: String,
 }
 impl Default for GmailProvider {
     fn default() -> Self {
@@ -26,12 +29,18 @@ impl Default for GmailProvider {
 
 impl GmailProvider {
     pub fn new() -> GmailProvider {
-        let url = String::from("https://mail.google.com/mail/feed/atom");
-        GmailProvider { url }
+        let feed_url = String::from("https://mail.google.com/mail/feed/atom");
+        let auth_url = String::from("https://mail.google.com/mail/feed/atom");
+        let token_url = String::from("https://mail.google.com/mail/feed/atom");
+        GmailProvider {
+            feed_url,
+            auth_url,
+            token_url,
+        }
     }
 
     fn get_request(&self, acc: &Account) -> Result<Request<Body>, WebClientError> {
-        let user_data: String = format!("{}:{}", acc.get_email(), acc.get_password());
+        let user_data: String = format!("{}:{}", acc.get_client_id(), acc.get_password());
         let b64: String = base64::encode(user_data.as_bytes());
         let auth_str: String = format!("Basic {}", b64);
 
@@ -39,7 +48,7 @@ impl GmailProvider {
         // Await the response...
         Request::builder()
             .method(Method::GET)
-            .uri(self.url.to_string())
+            .uri(self.feed_url.to_string())
             .header(AUTHORIZATION, value)
             .body(Body::empty())
             .map_err(|e| ConnectionError(e.to_string()))
@@ -91,5 +100,16 @@ impl MailProvider for GmailProvider {
             },
             Err(er) => Err(ParsingError(er.to_string())),
         }
+    }
+}
+
+impl TokenAccessor for GmailProvider {
+    fn get_token(
+        &self,
+        client_id: String,
+        client_secret: String,
+    ) -> Result<String, WebClientError> {
+        let token = String::from("");
+        return Ok(token);
     }
 }

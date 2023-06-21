@@ -9,17 +9,17 @@ use mail_lib::{
 use std::env::args;
 use std::process::exit;
 
-async fn process_accs<T: MailProvider>(
-    accs: Vec<Account>,
-    client: &Client<HttpsConnector<HttpConnector>, Body>,
-    provider: T,
-) -> Vec<Result<String, WebClientError>> {
-    accs.iter()
-        .map(|a| provider.get_mail_metadata(a, client))
-        .collect::<FuturesUnordered<_>>()
-        .collect::<Vec<_>>()
-        .await
-}
+// async fn process_accs<T: MailProvider>(
+//     accs: Vec<Account>,
+//     client: &Client<HttpsConnector<HttpConnector>, Body>,
+//     provider: T,
+// ) -> Vec<Result<String, WebClientError>> {
+//     accs.iter()
+//         .map(|a| provider.get_mail_metadata(a, client))
+//         .collect::<FuturesUnordered<_>>()
+//         .collect::<Vec<_>>()
+//         .await
+// }
 
 fn print_help() {
     println!(
@@ -64,23 +64,23 @@ async fn main() {
         }
     };
 
-    let https = HttpsConnector::new();
-    let client = Client::builder().build::<_, hyper::Body>(https);
-    let provider = GmailProvider::new();
+    // let https = HttpsConnector::new();
+    // let client = Client::builder().build::<_, hyper::Body>(https);
+    // let provider = GmailProvider::new();
 
-    let resp_vec = process_accs(accs, &client, provider).await;
-    let (responses, errors) =
-        resp_vec
-            .into_iter()
-            .fold((Vec::new(), Vec::new()), |(mut strs, mut errs), current| {
-                match current {
-                    Ok(s) => strs.push(s),
-                    Err(e) => errs.push(e),
-                }
-                (strs, errs)
-            });
-    for error in errors {
-        eprintln!("{}", error);
-    }
-    println!("{}", responses.join(&separator));
+    // let resp_vec = process_accs(accs, &client, provider).await;
+    // let (responses, errors) =
+    //     resp_vec
+    //         .into_iter()
+    //         .fold((Vec::new(), Vec::new()), |(mut strs, mut errs), current| {
+    //             match current {
+    //                 Ok(s) => strs.push(s),
+    //                 Err(e) => errs.push(e),
+    //             }
+    //             (strs, errs)
+    //         });
+    // for error in errors {
+    //     eprintln!("{}", error);
+    // }
+    // println!("{}", responses.join(&separator));
 }

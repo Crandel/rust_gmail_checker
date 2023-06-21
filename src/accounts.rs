@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 pub struct Account {
     mail_type: EmailType,
     account: String,
-    short_conky: String,
-    email: String,
-    password: String,
+    short_alias: String,
+    client_id: String,
+    client_secret: String,
 }
 
 impl Account {
@@ -14,32 +14,32 @@ impl Account {
     pub fn new(
         mail_type: EmailType,
         account: String,
-        short_conky: String,
-        email: String,
-        password: String,
+        short_alias: String,
+        client_id: String,
+        client_secret: String,
     ) -> Account {
         Account {
             mail_type,
             account,
-            short_conky,
-            email,
-            password,
+            short_alias,
+            client_id,
+            client_secret,
         }
     }
 
     // public getter for email
-    pub fn get_email(&self) -> &str {
-        &self.email
+    pub fn get_client_id(&self) -> &str {
+        &self.client_id
     }
 
     // public getter for password
     pub fn get_password(&self) -> &str {
-        &self.password
+        &self.client_secret
     }
 
     // public getter for short_conky value
     pub fn get_short(&self) -> &str {
-        &self.short_conky
+        &self.short_alias
     }
     // public getter for short_conky value
     pub fn get_mail_type(&self) -> EmailType {
@@ -62,20 +62,20 @@ mod tests {
     fn acc_test() {
         let mail_type = EmailType::Gmail;
         let name = "test_name";
-        let email = "test_email";
-        let password = "test_password";
+        let client_id = "test_email";
+        let client_secret = "test_password";
         let short = "test_short";
         let acc = Account::new(
             mail_type,
             String::from(name),
             String::from(short),
-            String::from(email),
-            String::from(password),
+            String::from(client_id),
+            String::from(client_secret),
         );
 
         assert_eq!(mail_type, acc.get_mail_type());
-        assert_eq!(email, acc.get_email());
-        assert_eq!(password, acc.get_password());
+        assert_eq!(client_id, acc.get_client_id());
+        assert_eq!(client_secret, acc.get_password());
         assert_eq!(short, acc.get_short());
     }
 }
