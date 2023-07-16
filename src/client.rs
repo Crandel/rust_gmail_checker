@@ -9,4 +9,6 @@ pub enum WebClientError {
     ParsingError(String),
     #[error("Connection error: {:?}", _0)]
     ConnectionError(String),
+    #[error("Token error: {:?}", _0)]
+    TokenError(String),
 }

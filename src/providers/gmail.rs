@@ -40,7 +40,7 @@ impl GmailProvider {
     }
 
     fn get_request(&self, acc: &Account) -> Result<Request<Body>, WebClientError> {
-        let user_data: String = format!("{}:{}", acc.get_client_id(), acc.get_password());
+        let user_data: String = format!("{}:{}", acc.get_client_id(), acc.get_client_secret());
         let b64: String = base64::encode(user_data.as_bytes());
         let auth_str: String = format!("Basic {}", b64);
 

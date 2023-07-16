@@ -2,6 +2,7 @@ use futures::stream::futures_unordered::FuturesUnordered;
 use futures::stream::StreamExt;
 use hyper::{client::HttpConnector, Body, Client};
 use hyper_tls::HttpsConnector;
+use mail_lib::storage;
 use mail_lib::{
     accounts::Account, client::WebClientError, config, provider::MailProvider,
     providers::gmail::GmailProvider,
@@ -21,13 +22,24 @@ use std::process::exit;
 //         .await
 // }
 
+fn set_entry_secret(a: &Account) -> bool {
+    let secret = a.get_client_secret();
+    let id = a.get_client_id();
+    return storage::set_entry(String::from(id), String::from(secret));
+}
+
 fn print_help() {
     println!(
-        "-h - help message\n
---help - help message\n
---init - create sample config file\n
+        r#"-h - help message
+
+
+
+--help - help message
+
+--init - create sample config file
+
 -s - new line separator between accounts
-"
+"#
     );
     exit(0)
 }
@@ -64,9 +76,12 @@ async fn main() {
         }
     };
 
+    let results: Vec<bool> = accs.iter().map(|a| set_entry_secret(a)).collect();
+
+    println!("{:?}", results)
     // let https = HttpsConnector::new();
     // let client = Client::builder().build::<_, hyper::Body>(https);
-    // let provider = GmailProvider::new();
+    // let provider = GmailProvider::new();    };
 
     // let resp_vec = process_accs(accs, &client, provider).await;
     // let (responses, errors) =

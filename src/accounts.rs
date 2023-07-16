@@ -33,7 +33,7 @@ impl Account {
     }
 
     // public getter for password
-    pub fn get_password(&self) -> &str {
+    pub fn get_client_secret(&self) -> &str {
         &self.client_secret
     }
 
@@ -75,7 +75,7 @@ mod tests {
 
         assert_eq!(mail_type, acc.get_mail_type());
         assert_eq!(client_id, acc.get_client_id());
-        assert_eq!(client_secret, acc.get_password());
+        assert_eq!(client_secret, acc.get_client_secret());
         assert_eq!(short, acc.get_short());
     }
 }
