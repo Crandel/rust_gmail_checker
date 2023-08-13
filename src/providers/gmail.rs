@@ -1,8 +1,8 @@
 use crate::{
     accessor::TokenAccessor,
     accounts::Account,
+    client::InternalError,
     client::InternalError::{ConnectionError, ParsingError},
-    client::{self, InternalError},
     provider::MailProvider,
 };
 pub(crate) use async_trait::async_trait;
@@ -13,7 +13,6 @@ use hyper::{
 };
 use hyper_tls::HttpsConnector;
 
-use base64;
 use roxmltree::Document;
 
 pub struct GmailProvider {

@@ -19,13 +19,14 @@ impl Account {
         client_id: String,
     ) -> Self {
         let secret: Option<String> = None;
+        let token: Option<String> = None;
         Account {
             mail_type,
             account,
             short_alias,
             client_id,
             client_secret: secret,
-            refresh_token: secret,
+            refresh_token: token,
         }
     }
 
@@ -36,11 +37,14 @@ impl Account {
 
     // public getter for client secret
     pub fn get_client_secret(&self) -> Option<String> {
-        self.client_secret
+        if let Some(secret) = self.client_secret.as_deref() {
+            return Some(String::from(secret));
+        }
+        return None;
     }
 
     // public setter for client secret
-    pub fn set_client_secret(&self, secret: String) {
+    pub fn set_client_secret(&mut self, secret: String) {
         if secret != "" {
             self.client_secret = Some(secret)
         }
@@ -48,21 +52,24 @@ impl Account {
 
     // public getter for refresh token
     pub fn get_refresh_token(&self) -> Option<String> {
-        self.refresh_token
+        if let Some(token) = self.refresh_token.as_deref() {
+            return Some(String::from(token));
+        }
+        return None;
     }
 
     // public setter for refresh token
-    pub fn set_refresh_token(&self, token: String) {
+    pub fn set_refresh_token(&mut self, token: String) {
         if token != "" {
             self.refresh_token = Some(token)
         }
     }
 
-    // public getter for short_conky value
+    // public getter for short alias value
     pub fn get_short(&self) -> &str {
         &self.short_alias
     }
-    // public getter for short_conky value
+    // public getter for mail type value
     pub fn get_mail_type(&self) -> EmailType {
         self.mail_type
     }
@@ -86,7 +93,7 @@ mod tests {
         let client_id = "test_id";
         let short = "test_short";
         let def_client_secret: Option<String> = None;
-        let acc = Account::new(
+        let mut acc = Account::new(
             mail_type,
             String::from(name),
             String::from(short),
@@ -98,11 +105,13 @@ mod tests {
         assert_eq!(def_client_secret, acc.get_client_secret());
         assert_eq!(short, acc.get_short());
 
-        let client_secret_str = String::from("test secret");
-        let client_secret: Option<String> = Some(client_secret_str);
-        let refresh_token_str = String::from("test secret");
-        let refresh_token: Option<String> = Some(refresh_token_str);
-        acc.set_client_secret(client_secret_str);
-        acc.set_refresh_token(refresh_token_str);
+        let client_secret_str = "test secret";
+        let client_secret: Option<String> = Some(String::from(client_secret_str));
+        let refresh_token_str = "test secret";
+        let refresh_token: Option<String> = Some(String::from(refresh_token_str));
+        acc.set_client_secret(String::from(client_secret_str));
+        acc.set_refresh_token(String::from(refresh_token_str));
+        assert_eq!(client_secret, acc.get_client_secret());
+        assert_eq!(refresh_token, acc.get_refresh_token());
     }
 }

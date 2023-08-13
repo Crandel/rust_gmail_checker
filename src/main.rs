@@ -25,10 +25,11 @@ use std::process::exit;
 fn set_entry_secret(a: &Account) -> bool {
     let id = a.get_client_id();
     let secret_id = format!("{}_{}", id, "secret");
-    if let Ok(secret) = storage.get_entry(secret_id) {
+    if let Ok(_) = storage::get_entry(secret_id.clone()) {
         return true;
+    } else {
+        return storage::set_entry(secret_id, String::from("secret"));
     }
-    return storage::set_entry(secret_id, String::from("secret"));
 }
 
 fn print_help() {
