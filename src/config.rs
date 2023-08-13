@@ -19,7 +19,6 @@ pub fn create_example() -> Result<(), ConfigError> {
         String::from("username"),
         String::from("Short"),
         String::from("client_id"),
-        String::from("client_secret"),
     );
     let def_vec_acc = vec![acc];
     let ex_acc_s: String = match serde_json::to_string(&def_vec_acc) {

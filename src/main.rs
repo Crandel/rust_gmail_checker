@@ -4,7 +4,7 @@ use hyper::{client::HttpConnector, Body, Client};
 use hyper_tls::HttpsConnector;
 use mail_lib::storage;
 use mail_lib::{
-    accounts::Account, client::WebClientError, config, provider::MailProvider,
+    accounts::Account, client::InternalError, config, provider::MailProvider,
     providers::gmail::GmailProvider,
 };
 use std::env::args;
@@ -23,9 +23,12 @@ use std::process::exit;
 // }
 
 fn set_entry_secret(a: &Account) -> bool {
-    let secret = a.get_client_secret();
     let id = a.get_client_id();
-    return storage::set_entry(String::from(id), String::from(secret));
+    let secret_id = format!("{}_{}", id, "secret");
+    if let Ok(secret) = storage.get_entry(secret_id) {
+        return true;
+    }
+    return storage::set_entry(secret_id, String::from("secret"));
 }
 
 fn print_help() {

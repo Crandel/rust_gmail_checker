@@ -10,8 +10,8 @@ pub fn get_entry(key: String) -> Result<String> {
 }
 
 pub fn set_entry(key: String, data: String) -> bool {
-    let resultEntry = Entry::new(SERVICE_NAME, key.as_str());
-    match resultEntry {
+    let result_entry = Entry::new(SERVICE_NAME, key.as_str());
+    match result_entry {
         Ok(entry) => {
             if let Ok(password) = entry.set_password(data.as_str()) {
                 return true;

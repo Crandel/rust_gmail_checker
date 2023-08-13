@@ -1,4 +1,4 @@
-use crate::{accounts::Account, client::WebClientError};
+use crate::{accounts::Account, client::InternalError};
 use async_trait::async_trait;
 use hyper::{client::HttpConnector, Body, Client};
 use hyper_tls::HttpsConnector;
@@ -9,6 +9,6 @@ pub trait MailProvider {
         &self,
         acc: &Account,
         client: &Client<HttpsConnector<HttpConnector>, Body>,
-    ) -> Result<String, WebClientError>;
-    fn parse_body(body: String) -> Result<String, WebClientError>;
+    ) -> Result<String, InternalError>;
+    fn parse_body(body: String) -> Result<String, InternalError>;
 }
