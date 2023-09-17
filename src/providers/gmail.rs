@@ -1,7 +1,8 @@
 use crate::{
+    accessor::TokenAccessor,
     accounts::Account,
-    client::WebClientError,
-    client::WebClientError::{ConnectionError, ParsingError},
+    client::InternalError,
+    client::InternalError::{ConnectionError, ParsingError},
     provider::MailProvider,
 };
 pub(crate) use async_trait::async_trait;
@@ -12,11 +13,12 @@ use hyper::{
 };
 use hyper_tls::HttpsConnector;
 
-use base64;
 use roxmltree::Document;
 
 pub struct GmailProvider {
-    url: String,
+    feed_url: String,
+    auth_url: String,
+    token_url: String,
 }
 impl Default for GmailProvider {
     fn default() -> Self {
@@ -26,20 +28,29 @@ impl Default for GmailProvider {
 
 impl GmailProvider {
     pub fn new() -> GmailProvider {
-        let url = String::from("https://mail.google.com/mail/feed/atom");
-        GmailProvider { url }
+        let feed_url = String::from("https://mail.google.com/mail/feed/atom");
+        let auth_url = String::from("https://mail.google.com/mail/feed/atom");
+        let token_url = String::from("https://mail.google.com/mail/feed/atom");
+        GmailProvider {
+            feed_url,
+            auth_url,
+            token_url,
+        }
     }
 
-    fn get_request(&self, acc: &Account) -> Result<Request<Body>, WebClientError> {
-        let user_data: String = format!("{}:{}", acc.get_email(), acc.get_password());
-        let b64: String = base64::encode(user_data.as_bytes());
-        let auth_str: String = format!("Basic {}", b64);
+    fn get_request(&self, acc: &Account) -> Result<Request<Body>, InternalError> {
+        let Some(client_secret) = acc.get_client_secret() else {
+            return Err(InternalError::TokenError(String::from("secret err")));
+        };
+        let Ok(auth_token) = self.get_token(String::from(acc.get_client_id()), client_secret) else {
+            return Err(InternalError::TokenError(String::from("token err")));
+        };
 
-        let value: HeaderValue = HeaderValue::from_str(&auth_str).unwrap();
+        let value: HeaderValue = HeaderValue::from_str(&auth_token).unwrap();
         // Await the response...
         Request::builder()
             .method(Method::GET)
-            .uri(self.url.to_string())
+            .uri(self.feed_url.to_string())
             .header(AUTHORIZATION, value)
             .body(Body::empty())
             .map_err(|e| ConnectionError(e.to_string()))
@@ -52,7 +63,7 @@ impl MailProvider for GmailProvider {
         &self,
         acc: &Account,
         client: &Client<HttpsConnector<HttpConnector>, Body>,
-    ) -> Result<String, WebClientError> {
+    ) -> Result<String, InternalError> {
         // Parse an `http::Uri`...
         let request = self.get_request(acc);
 
@@ -63,13 +74,13 @@ impl MailProvider for GmailProvider {
                 .map_err(|err| ConnectionError(err.to_string())),
             Err(e) => Err(e),
         };
-        let bytes_res: Result<hyper::body::Bytes, WebClientError> = match resp {
+        let bytes_res: Result<hyper::body::Bytes, InternalError> = match resp {
             Ok(rsp) => hyper::body::to_bytes(rsp.into_body())
                 .await
                 .map_err(|er| ConnectionError(er.to_string())),
             Err(e) => Err(e),
         };
-        let body_res: Result<String, WebClientError> = match bytes_res {
+        let body_res: Result<String, InternalError> = match bytes_res {
             Ok(bytes) => std::str::from_utf8(&bytes)
                 .map(|by| by.to_string())
                 .map_err(|er| ParsingError(er.to_string())),
@@ -80,7 +91,7 @@ impl MailProvider for GmailProvider {
         })
     }
 
-    fn parse_body(body: String) -> Result<String, WebClientError> {
+    fn parse_body(body: String) -> Result<String, InternalError> {
         match Document::parse(body.as_str()) {
             Ok(doc) => match doc.descendants().find(|n| n.has_tag_name("fullcount")) {
                 Some(fc) => match fc.text() {
@@ -91,5 +102,12 @@ impl MailProvider for GmailProvider {
             },
             Err(er) => Err(ParsingError(er.to_string())),
         }
+    }
+}
+
+impl TokenAccessor for GmailProvider {
+    fn get_token(&self, client_id: String, client_secret: String) -> Result<String, InternalError> {
+        let token = String::from("");
+        return Ok(token);
     }
 }

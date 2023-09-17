@@ -18,8 +18,7 @@ pub fn create_example() -> Result<(), ConfigError> {
         EmailType::Gmail,
         String::from("username"),
         String::from("Short"),
-        String::from("email"),
-        String::from("password"),
+        String::from("client_id"),
     );
     let def_vec_acc = vec![acc];
     let ex_acc_s: String = match serde_json::to_string(&def_vec_acc) {
