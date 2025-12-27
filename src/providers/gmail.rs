@@ -6,19 +6,20 @@ use crate::{
     provider::MailProvider,
 };
 pub(crate) use async_trait::async_trait;
+use http_body_util::{BodyExt, Empty};
+use hyper::body::Bytes;
 use hyper::{
-    client::HttpConnector,
     header::{HeaderValue, AUTHORIZATION},
-    Body, Client, Method, Request,
+    Method, Request,
 };
 use hyper_tls::HttpsConnector;
+use hyper_util::client::legacy::connect::HttpConnector;
+use hyper_util::client::legacy::Client;
 
 use roxmltree::Document;
 
 pub struct GmailProvider {
     feed_url: String,
-    auth_url: String,
-    token_url: String,
 }
 impl Default for GmailProvider {
     fn default() -> Self {
@@ -29,16 +30,12 @@ impl Default for GmailProvider {
 impl GmailProvider {
     pub fn new() -> GmailProvider {
         let feed_url = String::from("https://mail.google.com/mail/feed/atom");
-        let auth_url = String::from("https://mail.google.com/mail/feed/atom");
-        let token_url = String::from("https://mail.google.com/mail/feed/atom");
         GmailProvider {
             feed_url,
-            auth_url,
-            token_url,
         }
     }
 
-    fn get_request(&self, acc: &Account) -> Result<Request<Body>, InternalError> {
+    fn get_request(&self, acc: &Account) -> Result<Request<Empty<Bytes>>, InternalError> {
         let Some(client_secret) = acc.get_client_secret() else {
             return Err(InternalError::TokenError(String::from("secret err")));
         };
@@ -52,7 +49,7 @@ impl GmailProvider {
             .method(Method::GET)
             .uri(self.feed_url.to_string())
             .header(AUTHORIZATION, value)
-            .body(Body::empty())
+            .body(Empty::new())
             .map_err(|e| ConnectionError(e.to_string()))
     }
 }
@@ -62,7 +59,7 @@ impl MailProvider for GmailProvider {
     async fn get_mail_metadata(
         &self,
         acc: &Account,
-        client: &Client<HttpsConnector<HttpConnector>, Body>,
+        client: &Client<HttpsConnector<HttpConnector>, Empty<Bytes>>,
     ) -> Result<String, InternalError> {
         // Parse an `http::Uri`...
         let request = self.get_request(acc);
@@ -75,8 +72,11 @@ impl MailProvider for GmailProvider {
             Err(e) => Err(e),
         };
         let bytes_res: Result<hyper::body::Bytes, InternalError> = match resp {
-            Ok(rsp) => hyper::body::to_bytes(rsp.into_body())
+            Ok(rsp) => rsp
+                .into_body()
+                .collect()
                 .await
+                .map(|collected| collected.to_bytes())
                 .map_err(|er| ConnectionError(er.to_string())),
             Err(e) => Err(e),
         };
@@ -106,7 +106,7 @@ impl MailProvider for GmailProvider {
 }
 
 impl TokenAccessor for GmailProvider {
-    fn get_token(&self, client_id: String, client_secret: String) -> Result<String, InternalError> {
+    fn get_token(&self, _client_id: String, _client_secret: String) -> Result<String, InternalError> {
         let token = String::from("");
         return Ok(token);
     }

@@ -1,7 +1,10 @@
 use futures::stream::futures_unordered::FuturesUnordered;
 use futures::stream::StreamExt;
-use hyper::{client::HttpConnector, Body, Client};
+use http_body_util::Empty;
+use hyper::body::Bytes;
 use hyper_tls::HttpsConnector;
+use hyper_util::client::legacy::{connect::HttpConnector, Client};
+use hyper_util::rt::TokioExecutor;
 use mail_lib::storage;
 use mail_lib::{
     accounts::Account, client::InternalError, config, provider::MailProvider,
@@ -10,17 +13,17 @@ use mail_lib::{
 use std::env::args;
 use std::process::exit;
 
-// async fn process_accs<T: MailProvider>(
-//     accs: Vec<Account>,
-//     client: &Client<HttpsConnector<HttpConnector>, Body>,
-//     provider: T,
-// ) -> Vec<Result<String, WebClientError>> {
-//     accs.iter()
-//         .map(|a| provider.get_mail_metadata(a, client))
-//         .collect::<FuturesUnordered<_>>()
-//         .collect::<Vec<_>>()
-//         .await
-// }
+async fn process_accs<T: MailProvider>(
+    accs: Vec<Account>,
+    client: &Client<HttpsConnector<HttpConnector>, Empty<Bytes>>,
+    provider: T,
+) -> Vec<Result<String, InternalError>> {
+    accs.iter()
+        .map(|a| provider.get_mail_metadata(a, client))
+        .collect::<FuturesUnordered<_>>()
+        .collect::<Vec<_>>()
+        .await
+}
 
 fn set_entry_secret(a: &Account) -> bool {
     let id = a.get_client_id();
@@ -82,24 +85,24 @@ async fn main() {
 
     let results: Vec<bool> = accs.iter().map(|a| set_entry_secret(a)).collect();
 
-    println!("{:?}", results)
-    // let https = HttpsConnector::new();
-    // let client = Client::builder().build::<_, hyper::Body>(https);
-    // let provider = GmailProvider::new();    };
+    println!("{:?}", results);
+    let https = HttpsConnector::new();
+    let client = Client::builder(TokioExecutor::new()).build::<_, Empty<Bytes>>(https);
+    let provider = GmailProvider::new();
 
-    // let resp_vec = process_accs(accs, &client, provider).await;
-    // let (responses, errors) =
-    //     resp_vec
-    //         .into_iter()
-    //         .fold((Vec::new(), Vec::new()), |(mut strs, mut errs), current| {
-    //             match current {
-    //                 Ok(s) => strs.push(s),
-    //                 Err(e) => errs.push(e),
-    //             }
-    //             (strs, errs)
-    //         });
-    // for error in errors {
-    //     eprintln!("{}", error);
-    // }
-    // println!("{}", responses.join(&separator));
+    let resp_vec = process_accs(accs, &client, provider).await;
+    let (responses, errors) =
+        resp_vec
+            .into_iter()
+            .fold((Vec::new(), Vec::new()), |(mut strs, mut errs), current| {
+                match current {
+                    Ok(s) => strs.push(s),
+                    Err(e) => errs.push(e),
+                }
+                (strs, errs)
+            });
+    for error in errors {
+        eprintln!("{}", error);
+    }
+    println!("{}", responses.join(&separator));
 }
