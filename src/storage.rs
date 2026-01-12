@@ -1,0 +1,22 @@
+use keyring::{Entry, Result};
+
+const SERVICE_NAME: &str = "gmail_checker";
+
+pub fn get_entry(key: String) -> Result<String> {
+    let entry = Entry::new(SERVICE_NAME, key.as_str())?;
+    return entry.get_password();
+}
+
+pub fn set_entry(key: String, data: String) -> bool {
+    let result_entry = Entry::new(SERVICE_NAME, key.as_str());
+    match result_entry {
+        Ok(entry) => {
+            if let Ok(()) = entry.set_password(data.as_str()) {
+                return true;
+            };
+        }
+        Err(err) => println!("{:?}", err),
+    };
+
+    return false;
+}
